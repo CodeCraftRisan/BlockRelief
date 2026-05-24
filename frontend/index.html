@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Block-Relief — Decentralized Flood Relief</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --good:#22c55e;
+    --bad:#ef4444; --warn:#f59e0b; --muted:#94a3b8; --text:#f1f5f9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:var(--text);min-height:100vh;padding:24px;}
+  .container{max-width:1100px;margin:0 auto;}
+  header{text-align:center;margin-bottom:32px;}
+  header h1{font-size:34px;background:linear-gradient(90deg,#38bdf8,#22c55e);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  header p{color:var(--muted);margin-top:6px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;}
+  .card{background:var(--card);border-radius:14px;padding:22px;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  .card h2{font-size:18px;margin-bottom:14px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+  .stat{font-size:28px;font-weight:700;margin:6px 0;}
+  .label{color:var(--muted);font-size:13px;}
+  .progress{height:14px;background:#0f172a;border-radius:8px;overflow:hidden;margin-top:10px;}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--good),var(--accent));transition:width .4s;}
+  button{cursor:pointer;border:none;padding:12px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:transform .1s;width:100%;margin-top:10px;}
+  button:hover{transform:translateY(-1px);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-primary{background:var(--accent);color:#0f172a;}
+  .btn-success{background:var(--good);color:#fff;}
+  .btn-danger{background:var(--bad);color:#fff;}
+  input{width:100%;padding:11px;border-radius:8px;background:#0f172a;color:var(--text);border:1px solid #334155;font-size:14px;margin-top:8px;}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #334155;font-size:13px;}
+  .row:last-child{border:none;}
+  .pill{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+  .pill-good{background:#14532d;color:#86efac;}
+  .pill-warn{background:#78350f;color:#fcd34d;}
+  .pill-bad{background:#7f1d1d;color:#fca5a5;}
+  #status{padding:12px;background:#0f172a;border-radius:8px;font-size:13px;color:var(--muted);min-height:20px;margin-top:10px;border:1px solid #334155;}
+  .hash{font-family:monospace;font-size:11px;color:var(--muted);}
+  .lottery-card{background:linear-gradient(135deg,#7c2d12 0%,#a16207 100%);border-color:#f59e0b;}
+  table{width:100%;font-size:12px;margin-top:8px;}
+  th,td{text-align:left;padding:6px;border-bottom:1px solid #334155;}
+  th{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🌊 Block-Relief</h1>
+    <p>Transparent. Fair. Tamper-proof flood relief on blockchain.</p>
+  </header>
+
+  <!-- Wallet -->
+  <div class="card" style="margin-bottom:20px;">
+    <h2>🦊 Wallet</h2>
+    <div class="row">
+      <span class="label">Status</span>
+      <span id="walletStatus" class="pill pill-bad">Not Connected</span>
+    </div>
+    <div class="row">
+      <span class="label">Address</span>
+      <span class="hash" id="walletAddr">—</span>
+    </div>
+    <div class="row">
+      <span class="label">Role</span>
+      <span id="walletRole" class="pill pill-warn">Unknown</span>
+    </div>
+    <button class="btn-primary" id="connectBtn">Connect MetaMask</button>
+  </div>
+
+  <div class="grid">
+    <!-- Fund Progress -->
+    <div class="card">
+      <h2>💰 Fund Progress</h2>
+      <div class="label">Collected</div>
+      <div class="stat" id="collected">0 ETH</div>
+      <div class="label">Target</div>
+      <div class="stat" style="color:var(--good)" id="target">— ETH</div>
+      <div class="progress"><div id="progBar" style="width:0%"></div></div>
+      <div class="label" id="progText" style="margin-top:8px;text-align:right;">0%</div>
+    </div>
+
+    <!-- Donate -->
+    <div class="card">
+      <h2>❤️ Donate (and get a lottery ticket!)</h2>
+      <div class="label">Amount (ETH)</div>
+      <input type="number" id="amount" step="0.01" min="0.01" value="0.1" />
+      <button class="btn-success" id="donateBtn">Donate Now</button>
+      <div class="row" style="margin-top:14px;">
+        <span class="label">Your Ticket</span>
+        <span id="myTicket">—</span>
+      </div>
+      <div class="row">
+        <span class="label">Total Donors</span>
+        <span id="donorCount">0</span>
+      </div>
+    </div>
+
+    <!-- Admin -->
+    <div class="card">
+      <h2>⚙️ Admin Panel</h2>
+      <div class="row">
+        <span class="label">Victims</span><span id="victimCount">0</span>
+      </div>
+      <div class="row">
+        <span class="label">Distributed?</span>
+        <span id="distStatus" class="pill pill-warn">No</span>
+      </div>
+      <button class="btn-danger" id="distributeBtn" disabled>🚀 Trigger Distribution</button>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;">
+        80% → Victims (Fuzzy AHP)<br>
+        20% → 3 Lucky Donors (Lottery)
+      </div>
+    </div>
+
+    <!-- Lottery Winners -->
+    <div class="card lottery-card">
+      <h2>🎰 Lottery Winners</h2>
+      <div id="lotteryArea" class="label">Waiting for distribution...</div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="card" style="margin-top:20px;">
+    <h2>📡 Transaction Status</h2>
+    <div id="status">Connect your wallet to begin.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="app.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ffca4cc7e79dd0d',t:'MTc3OTQ2MTUzNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
